@@ -3,7 +3,7 @@ import express from "express";
 const app = express();
 app.use(express.json());
 
-// USER DATA
+// USER DUMMY DATA
 let userDatabase = [
   {
     userId: 1,
@@ -17,7 +17,7 @@ let userDatabase = [
   },
 ];
 
-// BOOK DATA
+// BOOK DUMMY DATA
 let bookDatabase = [
   {
     bookId: 1,
@@ -87,19 +87,20 @@ app.put("/library/users/:id", (req, res) => {
   const { name } = req.body;
 
   // CEK APAKAH ID USER SUDAH ADA
-  const index = userDatabase.findIndex((user) => user.userId === idNum);
-  if (index !== -1) {
+  const userIndex = userDatabase.findIndex((user) => user.userId === idNum);
+  if (userIndex !== -1) {
     const userData = userDatabase.find((user) => user.userId === idNum);
     const currentBorrowedBooks = userData.borrowedBooks;
 
-    userDatabase[index] = {
+    userDatabase[userIndex] = {
       userId: idNum,
       userName: name,
       borrowedBook: currentBorrowedBooks,
     };
 
     res.status(200).json({
-      msg: `User id: ${id} updated`,
+      msg: `User id: ${idNum} updated`,
+      data: userDatabase[userIndex],
     });
   } else {
     res.status(404).json({
@@ -138,7 +139,7 @@ app.put("/library/books/:id", (req, res) => {
       filteredBorrowedBooks.splice(filteredBookIndex, 1);
       filteredBorrowedBooks.push(newBookData.bookName);
 
-      const userIndex = userDatabase.find(
+      const userIndex = userDatabase.findIndex(
         (user) => user.userId === newBookData.borrowerId
       );
       userDatabase[userIndex] = {
@@ -148,7 +149,7 @@ app.put("/library/books/:id", (req, res) => {
       };
 
       res.status(200).json({
-        msg: `Book id: ${id} updated`,
+        msg: `Book id: ${idNum} updated`,
         data: {
           bookInfo: bookDatabase[bookIndex],
           userInfo: userDatabase[userIndex],
@@ -156,13 +157,13 @@ app.put("/library/books/:id", (req, res) => {
       });
     } else {
       res.status(200).json({
-        msg: `Book id: ${id} updated`,
+        msg: `Book id: ${idNum} updated`,
         data: bookDatabase[bookIndex],
       });
     }
   } else {
     res.status(404).json({
-      msg: `Book id: ${id} not found`,
+      msg: `Book id: ${idNum} not found`,
     });
   }
 });
@@ -222,17 +223,17 @@ app.delete("/library/users/:id", (req, res) => {
   const { id } = req.params;
   const idNum = parseInt(id, 10);
 
-  const index = userDatabase.findIndex((user) => user.userId === idNum);
+  const userIndex = userDatabase.findIndex((user) => user.userId === idNum);
 
-  if (index !== -1) {
-    userDatabase.splice(index, 1);
+  if (userIndex !== -1) {
+    userDatabase.splice(userIndex, 1);
 
     res.status(200).json({
-      msg: `User id: ${id} successfully deleted`,
+      msg: `User id: ${idNum} successfully deleted`,
     });
   } else {
     res.status(404).json({
-      msg: `User id: ${id} not found`,
+      msg: `User id: ${idNum} not found`,
     });
   }
 });
@@ -241,17 +242,17 @@ app.delete("/library/books/:id", (req, res) => {
   const { id } = req.params;
   const idNum = parseInt(id, 10);
 
-  const index = bookDatabase.findIndex((book) => book.bookId === idNum);
+  const bookIndex = bookDatabase.findIndex((book) => book.bookId === idNum);
 
-  if (index !== -1) {
-    bookDatabase.splice(index, 1);
+  if (bookIndex !== -1) {
+    bookDatabase.splice(bookIndex, 1);
 
     res.status(200).json({
-      msg: `Book id: ${id} deleted`,
+      msg: `Book id: ${idNum} successfully deleted`,
     });
   } else {
     res.status(404).json({
-      msg: `Book id: ${id} not found`,
+      msg: `Book id: ${idNum} not found`,
     });
   }
 });
