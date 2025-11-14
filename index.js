@@ -57,7 +57,7 @@ app.post("/library/users", (req, res) => {
   });
 
   res.status(201).json({
-    msg: "User Created",
+    msg: "User Successfully Created",
     data: userDatabase.at(-1),
   });
 });
@@ -74,7 +74,7 @@ app.post("/library/books", (req, res) => {
   });
 
   res.status(201).json({
-    msg: "Book Added",
+    msg: "Book Successfully Added",
     data: bookDatabase.at(-1),
   });
 });
@@ -104,7 +104,7 @@ app.put("/library/users/:id", (req, res) => {
     });
   } else {
     res.status(404).json({
-      msg: `User id: ${id} not found`,
+      msg: `User id: ${idNum} not found`,
     });
   }
 });
@@ -207,12 +207,12 @@ app.put("/library/users/borrow/:id", (req, res) => {
       });
     } else {
       res.status(404).json({
-        msg: `Book id: ${id} not found`,
+        msg: `Book id: ${idNum} not found`,
       });
     }
   } else {
     res.status(404).json({
-      msg: `User id: ${id} not found`,
+      msg: `User id: ${idNum} not found`,
     });
   }
 });
