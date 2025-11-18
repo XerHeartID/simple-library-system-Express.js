@@ -61,7 +61,7 @@ app.get("/library/login", function (req, res) {
 /// GET ALL USERS
 app.get("/library/users", function (req, res) {
   // CEK LOGIN USER
-  if (loggedUser.userId !== null && loggedUser.userName !== null) {
+  if (loggedUser.userId != null && loggedUser.userName != null) {
     if (loggedUser.userRole === "Admin" || loggedUser.userRole === "Member") {
       res.status(200).json({
         msg: "Get All Users Success",
@@ -81,7 +81,7 @@ app.get("/library/users", function (req, res) {
 /// GET USER BY ID
 app.get("/library/users/:id", function (req, res) {
   // CEK LOGIN USER
-  if (loggedUser.userId !== null && loggedUser.userName !== null) {
+  if (loggedUser.userId != null && loggedUser.userName != null) {
     if (loggedUser.userRole === "Admin" || loggedUser.userRole === "Member") {
       const { id } = req.params;
       const idNum = parseInt(id, 10);
@@ -105,7 +105,7 @@ app.get("/library/users/:id", function (req, res) {
 /// GET ALL BOOKS
 app.get("/library/books", function (req, res) {
   // CEK LOGIN USER
-  if (loggedUser.userId !== null && loggedUser.userName !== null) {
+  if (loggedUser.userId != null && loggedUser.userName != null) {
     if (loggedUser.userRole === "Admin" || loggedUser.userRole === "Member") {
       res.status(200).json({
         msg: "Get All Books Success",
@@ -125,7 +125,7 @@ app.get("/library/books", function (req, res) {
 /// GET BOOK BY ID
 app.get("/library/books/:id", function (req, res) {
   // CEK LOGIN USER
-  if (loggedUser.userId !== null && loggedUser.userName !== null) {
+  if (loggedUser.userId != null && loggedUser.userName != null) {
     if (loggedUser.userRole === "Admin" || loggedUser.userRole === "Member") {
       const { id } = req.params;
       const idNum = parseInt(id, 10);
@@ -164,7 +164,7 @@ app.post("/library/login", (req, res) => {
         userRole: userData.userRole,
       };
 
-      res.status(404).json({
+      res.status(200).json({
         msg: `User Successfully Logged In`,
         data: loggedUser,
       });
@@ -199,7 +199,7 @@ app.post("/library/users", (req, res) => {
 /// POST BOOK
 app.post("/library/books", (req, res) => {
   // CEK LOGIN USER
-  if (loggedUser.userId !== null && loggedUser.userName !== null) {
+  if (loggedUser.userId != null && loggedUser.userName != null) {
     if (loggedUser.userRole === "Admin") {
       const { name } = req.body;
 
@@ -231,7 +231,7 @@ app.post("/library/books", (req, res) => {
 /// EDIT USER
 app.put("/library/users/:id", (req, res) => {
   // CEK LOGIN USER
-  if (loggedUser.userId !== null && loggedUser.userName !== null) {
+  if (loggedUser.userId != null && loggedUser.userName != null) {
     if (loggedUser.userRole === "Admin") {
       const { id } = req.params;
       const idNum = parseInt(id, 10);
@@ -248,7 +248,7 @@ app.put("/library/users/:id", (req, res) => {
           userId: idNum ?? userData.userId,
           userName: name ?? userData.userName,
           userRole: role ?? userData.userRole,
-          borrowedBook: currentBorrowedBooks,
+          borrowedBooks: currentBorrowedBooks,
         };
 
         res.status(200).json({
@@ -274,7 +274,7 @@ app.put("/library/users/:id", (req, res) => {
 /// EDIT BOOK
 app.put("/library/books/:id", (req, res) => {
   // CEK LOGIN USER
-  if (loggedUser.userId !== null && loggedUser.userName !== null) {
+  if (loggedUser.userId != null && loggedUser.userName != null) {
     if (loggedUser.userRole === "Admin") {
       const { id } = req.params;
       const idNum = parseInt(id, 10);
@@ -348,12 +348,11 @@ app.put("/library/books/:id", (req, res) => {
   }
 });
 /// BORROW BOOK
-app.put("/library/users/borrow/:id", (req, res) => {
+app.put("/library/borrow", (req, res) => {
   // CEK LOGIN USER
-  if (loggedUser.userId !== null && loggedUser.userName !== null) {
+  if (loggedUser.userId != null && loggedUser.userName != null) {
     if (loggedUser.userRole === "Member") {
-      const { id } = req.params;
-      const idNum = parseInt(id, 10);
+      const idNum = loggedUser.userId;
       const { bookId } = req.body;
 
       const userIndex = userDatabase.findIndex((user) => user.userId === idNum);
@@ -392,7 +391,8 @@ app.put("/library/users/borrow/:id", (req, res) => {
           });
         } else {
           res.status(404).json({
-            msg: `Book ID: ${idNum} Not Found`,
+            msg: `Book ID: ${bookId} Not Found`,
+            data: { loggedUser },
           });
         }
       } else {
@@ -416,7 +416,7 @@ app.put("/library/users/borrow/:id", (req, res) => {
 /// DELETE USER
 app.delete("/library/users/:id", (req, res) => {
   // CEK LOGIN USER
-  if (loggedUser.userId !== null && loggedUser.userName !== null) {
+  if (loggedUser.userId != null && loggedUser.userName != null) {
     if (loggedUser.userRole === "Admin") {
       const { id } = req.params;
       const idNum = parseInt(id, 10);
@@ -456,7 +456,7 @@ app.delete("/library/users/:id", (req, res) => {
 /// DELETE BOOK
 app.delete("/library/books/:id", (req, res) => {
   // CEK LOGIN USER
-  if (loggedUser.userId !== null && loggedUser.userName !== null) {
+  if (loggedUser.userId != null && loggedUser.userName != null) {
     if (loggedUser.userRole === "Admin") {
       const { id } = req.params;
       const idNum = parseInt(id, 10);
