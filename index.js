@@ -3,21 +3,23 @@ import express from "express";
 const app = express();
 app.use(express.json());
 
-// USER DUMMY DATA
+// DUMMY USERS DATA
 let userDatabase = [
   {
     userId: 1,
     userName: "Akmal",
+    userRole: "Admin",
     borrowedBooks: [],
   },
   {
     userId: 2,
     userName: "Jamal",
+    userRole: "Member",
     borrowedBooks: [],
   },
 ];
 
-// BOOK DUMMY DATA
+// DUMMY BOOKS DATA
 let bookDatabase = [
   {
     bookId: 1,
@@ -36,23 +38,53 @@ let bookDatabase = [
 ];
 
 // GET METHOD
-/// GET USERS
+/// GET ALL USERS
 app.get("/library/users", function (req, res) {
-  res.status(200).json({ msg: "Get All Users Success", data: userDatabase });
+  res.status(200).json({
+    msg: "Get All Users Success",
+    data: userDatabase,
+  });
 });
-/// GET BOOKS
+/// GET USER BY ID
+app.get("/library/users/:id", function (req, res) {
+  const { id } = req.params;
+  const idNum = parseInt(id, 10);
+  const userIndex = userDatabase.findIndex((user) => user.userId === idNum);
+
+  res.status(200).json({
+    msg: "Get User Success",
+    data: userDatabase[userIndex],
+  });
+});
+/// GET ALL BOOKS
 app.get("/library/books", function (req, res) {
-  res.status(200).json({ msg: "Get All Books Success", data: bookDatabase });
+  res.status(200).json({
+    msg: "Get All Books Success",
+    data: bookDatabase,
+  });
+});
+/// GET BOOK BY ID
+app.get("/library/books/:id", function (req, res) {
+  const { id } = req.params;
+  const idNum = parseInt(id, 10);
+  const bookIndex = bookDatabase.findIndex((book) => book.bookId === idNum);
+
+  res.status(200).json({
+    msg: "Get Book Success",
+    data: bookDatabase[bookIndex],
+  });
 });
 
 // POST METHOD
 /// POST USER
 app.post("/library/users", (req, res) => {
   const { name } = req.body;
+  const { role } = req.body;
 
   userDatabase.push({
     userId: userDatabase.length + 1,
     userName: name,
+    userRole: role,
     borrowedBooks: [],
   });
 
@@ -85,6 +117,7 @@ app.put("/library/users/:id", (req, res) => {
   const { id } = req.params;
   const idNum = parseInt(id, 10);
   const { name } = req.body;
+  const { role } = req.body;
 
   // CEK APAKAH ID USER SUDAH ADA
   const userIndex = userDatabase.findIndex((user) => user.userId === idNum);
@@ -93,8 +126,9 @@ app.put("/library/users/:id", (req, res) => {
     const currentBorrowedBooks = userData.borrowedBooks;
 
     userDatabase[userIndex] = {
-      userId: idNum,
-      userName: name,
+      userId: idNum ?? userData.userId,
+      userName: name ?? userData.userName,
+      userRole: role ?? userData.userRole,
       borrowedBook: currentBorrowedBooks,
     };
 
@@ -120,21 +154,21 @@ app.put("/library/books/:id", (req, res) => {
   if (bookIndex !== -1) {
     const bookData = bookDatabase.find((book) => book.bookId === idNum);
     bookDatabase[bookIndex] = {
-      bookId: idNum,
-      bookName: name,
-      bookStatus: bookData.bookStatus ?? status,
+      bookId: idNum ?? bookData.bookId,
+      bookName: name ?? bookData.bookName,
+      bookStatus: status ?? bookData.bookStatus,
       borrowerId: bookData.borrowerId,
       borrowerName: bookData.borrowerName,
     };
 
-    // UPDATE INFO PEMINJAM JIKA ADA PEMINJAMNYA
+    // UPDATE INFO PEMINJAM BUKU (USER) JIKA ADA
     const newBookData = bookDatabase.find((book) => book.bookId === idNum);
     if (newBookData.borrowerId != null && newBookData.borrowerName != null) {
       const userData = userDatabase.find(
         (user) => user.userId === newBookData.borrowerId
       );
 
-      let filteredBookIndex = userData.borrowedBooks.indexOf(name) + 1;
+      let filteredBookIndex = userData.borrowedBooks.indexOf(name);
       const filteredBorrowedBooks = userData.borrowedBooks;
       filteredBorrowedBooks.splice(filteredBookIndex, 1);
       filteredBorrowedBooks.push(newBookData.bookName);
@@ -145,6 +179,7 @@ app.put("/library/books/:id", (req, res) => {
       userDatabase[userIndex] = {
         userId: userData.userId,
         userName: userData.userName,
+        userRole: userData.userRole,
         borrowedBooks: filteredBorrowedBooks,
       };
 
@@ -174,10 +209,8 @@ app.put("/library/users/borrow/:id", (req, res) => {
   const { bookId } = req.body;
 
   const userIndex = userDatabase.findIndex((user) => user.userId === idNum);
-
   if (userIndex !== -1) {
     const bookIndex = bookDatabase.findIndex((book) => book.bookId === bookId);
-
     if (bookIndex !== -1) {
       const userData = userDatabase.find((user) => user.userId === idNum);
       const bookData = bookDatabase.find((book) => book.bookId === bookId);
@@ -187,6 +220,7 @@ app.put("/library/users/borrow/:id", (req, res) => {
       userDatabase[userIndex] = {
         userId: userData.userId,
         userName: userData.userName,
+        userRole: userData.userRole,
         borrowedBooks: currentBorrowedBooks,
       };
 
@@ -224,8 +258,16 @@ app.delete("/library/users/:id", (req, res) => {
   const idNum = parseInt(id, 10);
 
   const userIndex = userDatabase.findIndex((user) => user.userId === idNum);
-
   if (userIndex !== -1) {
+    // UPDATE INFO BUKU JIKA ADA YANG DIPINJAM
+    bookDatabase.forEach((book) => {
+      if (book.borrowerId === idNum) {
+        book.bookStatus = "Ready";
+        book.borrowerId = undefined;
+        book.borrowerName = undefined;
+      }
+    });
+
     userDatabase.splice(userIndex, 1);
 
     res.status(200).json({
@@ -243,8 +285,17 @@ app.delete("/library/books/:id", (req, res) => {
   const idNum = parseInt(id, 10);
 
   const bookIndex = bookDatabase.findIndex((book) => book.bookId === idNum);
-
   if (bookIndex !== -1) {
+    // UPDATE INFO PEMINJAM BUKU (USER) JIKA ADA
+    userDatabase.forEach((user) => {
+      if (user.userId === bookDatabase[bookIndex].borrowerId) {
+        let filteredBookIndex = user.borrowedBooks.indexOf(
+          bookDatabase[bookIndex].bookName
+        );
+        user.borrowedBooks.splice(filteredBookIndex, 1);
+      }
+    });
+
     bookDatabase.splice(bookIndex, 1);
 
     res.status(200).json({
